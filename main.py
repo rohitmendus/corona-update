@@ -95,7 +95,6 @@ class App:
 		self.voice = voice
 		self.master = master
 		self.bg_color = "#eb4034"
-		print(self.scraper.get_country_data("hello hello IndIa hello"))
 		self.master.iconbitmap('virus.ico')
 		self.master.title("Corona Updater")
 		self.master.maxsize('864', '664')
@@ -132,7 +131,7 @@ class App:
 		speech = f'''Good Day!....
 		There have been {self.new_cases} new cases reported adding up to a total of {self.total_cases} cases.
 		{self.new_deaths} deaths have also been reported which has added up to a total of {self.total_deaths} deaths.'''
-		# self.voice.speak(speech)
+		self.voice.speak(speech)
 
 
 	def ask(self):
@@ -141,7 +140,7 @@ class App:
 		print(text)
 		data1 = self.scraper.get_country_data(text)
 		if bool(data1):
-			if text.find("new") != -1 and text.find("cases") != -1:
+			if text.find("new") != -1 and text.find("case") != -1:
 				value = "{:,}".format(data1["new_case"])
 				country = data1["country"]
 				self.voice.speak(f"There are {value} new cases in {country}")
@@ -165,13 +164,30 @@ class App:
 				country = data1["country"]
 				self.voice.speak(f"""There are {value_2} new cases in {country} adding to a total of {value_1} cases.
 					{value_4} new deaths have also been reported adding to the total of {value_3} deaths.""")
+		elif text.find("new") != -1 and text.find("case") != -1:
+			self.voice.speak(f"There are {self.new_cases} new cases.")
+		elif text.find("case") != -1:
+			self.voice.speak(f"There are a total number of {self.total_cases} cases.")
+		elif text.find("new") != -1 and text.find("death") != -1:
+			self.voice.speak(f"There are {self.new_deaths} new deaths.")
+		elif text.find("death") != -1:
+			self.voice.speak(f"There are a total number of {self.total_deaths} deaths so far.")
+		elif text.find("covid") != -1 or text.find("corona") != -1:
+			speech = f'''There have been {self.new_cases} new cases reported adding up to a total of {self.total_cases} cases.
+						{self.new_deaths} deaths have also been reported which has added up to a total of {self.total_deaths} deaths.'''
+			self.voice.speak(speech)
 		else:
-			pass
+			self.voice.speak("Sorry can't find what you are looking for!")
 		self.ask_btn.config(text="Ask", state="normal")
 
 
-	def country_news(self, i):
-		print(i)
+	def country_news(self, i=None):
+		country = self.sel_country.get().lower()
+		data = self.scraper.get_country_data(country)
+		self.cnt_tot_cases_lab_num.config(text="{:,}".format(data["cases"]))
+		self.cnt_tot_deaths_lab_num.config(text="{:,}".format(data["deaths"]))
+		self.cnt_new_cases_lab_num.config(text="{:,}".format(data["new_cases"]))
+		self.cnt_new_deaths_lab_num.config(text="{:,}".format(data["new_deaths"]))
 
 
 	def set_up(self):
@@ -204,6 +220,27 @@ class App:
 		self.sel_country["values"] = tuple(self.scraper.get_country())
 		self.sel_country.bind("<<ComboboxSelected>>", self.country_news)
 		self.sel_country.place(x=300, y=350)
+		self.srch_btn = Button(self.master, text="Search", activebackground="green", activeforeground="white", font=('Helvetica', 16), width = 10, bg="green", fg="white", command=self.country_news)
+		self.srch_btn.place(x=600, y=350)
+		self.country_figures_frame = Frame(self.master, bg=self.bg_color)
+		self.cnt_tot_cases_lab_num = Label(self.country_figures_frame, text="", font=('Helvetica', 20), fg="white", bg=self.bg_color)
+		self.cnt_tot_cases_lab = Label(self.country_figures_frame, text="cases", font=('Helvetica', 16), fg="white", bg=self.bg_color)
+		self.cnt_new_cases_lab_num = Label(self.country_figures_frame, text="", font=('Helvetica', 20), fg="white", bg=self.bg_color)
+		self.cnt_new_cases_lab = Label(self.country_figures_frame, text="new cases", font=('Helvetica', 16), fg="white", bg=self.bg_color)
+		self.cnt_tot_deaths_lab_num = Label(self.country_figures_frame, text="", font=('Helvetica', 20), fg="white", bg=self.bg_color)
+		self.cnt_tot_deaths_lab = Label(self.country_figures_frame, text="deaths", font=('Helvetica', 16), fg="white", bg=self.bg_color)
+		self.cnt_new_deaths_lab_num = Label(self.country_figures_frame, text="", font=('Helvetica', 20), fg="white", bg=self.bg_color)
+		self.cnt_new_deaths_lab = Label(self.country_figures_frame, text="new deaths", font=('Helvetica', 16), fg="white", bg=self.bg_color)
+		self.cnt_tot_cases_lab_num.grid(row=0, column=0, padx=65)
+		self.cnt_tot_cases_lab.grid(row=1, column=0, padx=65)
+		self.cnt_tot_deaths_lab_num.grid(row=0, column=1, padx=65)
+		self.cnt_tot_deaths_lab.grid(row=1, column=1, padx=65)
+		self.cnt_new_cases_lab_num.grid(row=2, column=0, padx=65, pady=(30, 0))
+		self.cnt_new_cases_lab.grid(row=3, column=0, padx=65)
+		self.cnt_new_deaths_lab_num.grid(row=2, column=1, padx=65, pady=(30, 0))
+		self.cnt_new_deaths_lab.grid(row=3, column=1, padx=65)
+		self.country_figures_frame.place(x=200, y = 400)
+
 
 
 if __name__ == '__main__':	
